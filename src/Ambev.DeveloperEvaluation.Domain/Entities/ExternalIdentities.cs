@@ -68,7 +68,7 @@ public class ExternalIdentities : BaseEntity, IExternalIdentities
 
 
     ///// <summary>
-    ///// Cancelled/Not Cancelled
+    ///// Cancelled/Not Cancelled 
     ///// </summary>
     public ExternalIdentitiesCancel StatusCancel { get; set; }
 
