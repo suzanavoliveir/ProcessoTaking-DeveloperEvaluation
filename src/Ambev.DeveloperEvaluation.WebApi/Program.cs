@@ -8,6 +8,9 @@ using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Rebus;
+using Rebus.Config;
+using Rebus.Transport.InMem;
 using Serilog;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
@@ -42,6 +45,7 @@ public class Program
 
             builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(ApplicationLayer).Assembly);
 
+
             builder.Services.AddMediatR(cfg =>
             {
                 cfg.RegisterServicesFromAssemblies(
@@ -68,7 +72,16 @@ public class Program
 
             app.UseBasicHealthChecks();
 
+            // Após os outros serviços
+            builder.Services.AddRebus(configure => configure
+                .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "developer-evaluation-queue"))
+                .Logging(l => l.Console())
+            );
+
             app.MapControllers();
+
+            //Inicia Rebus
+            app.Services.GetRequiredService<Rebus.Bus.IBus>();
 
             app.Run();
         }

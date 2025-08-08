@@ -1,11 +1,11 @@
 using MediatR;
 
-namespace Ambev.DeveloperEvaluation.Application.Users.DeleteUser;
+namespace Ambev.DeveloperEvaluation.Application.ExternalIdentities.DeleteExternalIdentities;
 
 /// <summary>
 /// Command for deleting a user
 /// </summary>
-public record DeleteExternalIdentitiesCommand : IRequest<DeleteUserResponse>
+public record DeleteExternalIdentitiesCommand : IRequest<DeleteExternalIdentitiesResponse>
 {
     /// <summary>
     /// The unique identifier of the user to delete

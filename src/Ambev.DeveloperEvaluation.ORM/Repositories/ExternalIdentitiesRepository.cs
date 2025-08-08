@@ -1,6 +1,7 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.ORM.Repositories;
 
@@ -10,14 +11,16 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories;
 public class ExternalIdentitiesRepository : IExternalIdentitiesRepository
 {
     private readonly DefaultContext _context;
+    private readonly ILogger<ExternalIdentitiesRepository> _logger;
 
     /// <summary>
     /// Initializes a new instance of ExternalIdentitiesRepository
     /// </summary>
     /// <param name="context">The database context</param>
-    public ExternalIdentitiesRepository(DefaultContext context)
+    public ExternalIdentitiesRepository(DefaultContext context, ILogger<ExternalIdentitiesRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
@@ -28,9 +31,20 @@ public class ExternalIdentitiesRepository : IExternalIdentitiesRepository
     /// <returns>The created ExternalIdentities</returns>
     public async Task<ExternalIdentities> CreateAsync(ExternalIdentities ExternalIdentities, CancellationToken cancellationToken = default)
     {
-        await _context.ExternalIdentities.AddAsync(ExternalIdentities, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-        return ExternalIdentities;
+        try
+        {
+            _logger.LogInformation("Creating ExternalIdentities: {ExternalIdentities}", ExternalIdentities);
+            await _context.ExternalIdentities.AddAsync(ExternalIdentities, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Created with Sucess ExternalIdentities with ID: {Id}", ExternalIdentities.Id);
+            return ExternalIdentities;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Creating ExternalIdentities: {ExternalIdentities}", ExternalIdentities);
+            return null;
+        }
+
     }
 
     /// <summary>
@@ -41,7 +55,17 @@ public class ExternalIdentitiesRepository : IExternalIdentitiesRepository
     /// <returns>The ExternalIdentities if found, null otherwise</returns>
     public async Task<ExternalIdentities?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.ExternalIdentities.FirstOrDefaultAsync(o=> o.Id == id, cancellationToken);
+        try
+        {
+            _logger.LogInformation("Retrieving ExternalIdentities with ID: {Id}", id);
+            return await _context.ExternalIdentities.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Retrieving ExternalIdentities with ID: {Id}", id);
+            return null;
+        }
+            
     }
 
     /// <summary>
@@ -50,15 +74,21 @@ public class ExternalIdentitiesRepository : IExternalIdentitiesRepository
     /// <param name="id">The unique identifier of the ExternalIdentities to update</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if the ExternalIdentities was deleted, false if not found</returns>
-    public async Task<bool> UpdateAsync(Guid id, ExternalIdentities externalIdentities, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(ExternalIdentities externalIdentities, CancellationToken cancellationToken = default)
     {
-        var ExternalIdentities = await GetByIdAsync(id, cancellationToken);
-        if (ExternalIdentities == null)
-            return false;
+        try
+        {
+            _context.ExternalIdentities.Update(externalIdentities);
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Updated with Sucess ExternalIdentities with ID: {Id}", externalIdentities.Id);
+            return true;
 
-        _context.ExternalIdentities.Update(externalIdentities);
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        }catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Updating ExternalIdentities: {ExternalIdentities}", externalIdentities);
+            return false;
+        }
+        
     }
 
     /// <summary>
@@ -69,13 +99,23 @@ public class ExternalIdentitiesRepository : IExternalIdentitiesRepository
     /// <returns>True if the ExternalIdentities was deleted, false if not found</returns>
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var ExternalIdentities = await GetByIdAsync(id, cancellationToken);
-        if (ExternalIdentities == null)
-            return false;
+        try {            
+            var ExternalIdentities = await GetByIdAsync(id, cancellationToken);
+            if (ExternalIdentities == null)
+                return false;
 
-        _context.ExternalIdentities.Remove(ExternalIdentities);
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
+            _context.ExternalIdentities.Remove(ExternalIdentities);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Deleted with Sucess ExternalIdentities with ID: {Id}", id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error Deleting ExternalIdentities with ID: {Id}", id);
+            return false;
+        }
+        
     }
 
 

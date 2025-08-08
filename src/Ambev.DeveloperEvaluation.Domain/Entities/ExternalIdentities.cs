@@ -17,6 +17,11 @@ public class ExternalIdentities : BaseEntity, IExternalIdentities
 {
 
     /// <summary>
+    /// Identifier for the ExternalIdentities
+    /// </summary>
+    public Guid Id { get; }
+
+    /// <summary>
     /// Sale number
     /// </summary>
     public string SaleNumber { get; set; } = string.Empty;

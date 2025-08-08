@@ -24,18 +24,11 @@ public interface IExternalIdentitiesRepository
     Task<ExternalIdentities?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves a External Identitiesby their email address
-    /// </summary>
-    /// <param name="email">The email address to search for</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    ///// <returns>The External Identitiesif found, null otherwise</returns>
-    //Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Deletes a External Identitiesfrom the repository
     /// </summary>
     /// <param name="id">The unique identifier of the External Identitiesto delete</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if the External Identitieswas deleted, false if not found</returns>
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAsync(ExternalIdentities externalIdentities, CancellationToken cancellationToken);
 }

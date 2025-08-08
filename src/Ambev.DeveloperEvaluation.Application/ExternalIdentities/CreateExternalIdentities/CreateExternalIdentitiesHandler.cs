@@ -12,7 +12,7 @@ namespace Ambev.DeveloperEvaluation.Application.ExternalIdentities.CreateIExtern
 /// </summary>
 public class CreateExternalIdentitiesHandler : IRequestHandler<CreateExternalIdentitiesCommand, CreateExternalIdentitiesResult>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IExternalIdentitiesRepository _externalIdentitiesRepository;
     private readonly IMapper _mapper;
     private readonly IPasswordHasher _passwordHasher;
 
@@ -22,9 +22,9 @@ public class CreateExternalIdentitiesHandler : IRequestHandler<CreateExternalIde
     /// <param name="userRepository">The External Identities repository</param>
     /// <param name="mapper">The AutoMapper instance</param>
     /// <param name="validator">The validator for CreateExternalIdentitiesCommand</param>
-    public CreateExternalIdentitiesHandler(IUserRepository userRepository, IMapper mapper, IPasswordHasher passwordHasher)
+    public CreateExternalIdentitiesHandler(IExternalIdentitiesRepository externalIdentitiesRepository, IMapper mapper, IPasswordHasher passwordHasher)
     {
-        _userRepository = userRepository;
+        _externalIdentitiesRepository = externalIdentitiesRepository;
         _mapper = mapper;
         _passwordHasher = passwordHasher;
     }
@@ -38,8 +38,8 @@ public class CreateExternalIdentitiesHandler : IRequestHandler<CreateExternalIde
     public async Task<CreateExternalIdentitiesResult> Handle(CreateExternalIdentitiesCommand command, CancellationToken cancellationToken)
     {
 
-        var externalIdentities = _mapper.Map<User>(command); //ALTERAR
-        var createdExternalIdentities = await _userRepository.CreateAsync(externalIdentities, cancellationToken);
+        var externalIdentities = _mapper.Map<Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities>(command); 
+        var createdExternalIdentities = await _externalIdentitiesRepository.CreateAsync(externalIdentities, cancellationToken);
         var result = _mapper.Map<CreateExternalIdentitiesResult>(createdExternalIdentities);
         return result;
     }

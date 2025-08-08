@@ -11,14 +11,14 @@ using Xunit;
 namespace Ambev.DeveloperEvaluation.Unit.Application;
 
 /// <summary>
-/// Contains unit tests for the <see cref="CreateExternalIdentitiesHandler"/> class.
+/// Contains unit tests for the <see cref="CreateUserHandler"/> class.
 /// </summary>
 public class CreateUserHandlerTests
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly CreateExternalIdentitiesHandler _handler;
+    private readonly CreateUserHandler _handler;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateUserHandlerTests"/> class.
@@ -51,14 +51,14 @@ public class CreateUserHandlerTests
             Role = command.Role
         };
 
-        var result = new CreateExternalIdentitiesResult
+        var result = new CreateUserResult
         {
             Id = user.Id,
         };
 
 
         _mapper.Map<User>(command).Returns(user);
-        _mapper.Map<CreateExternalIdentitiesResult>(user).Returns(result);
+        _mapper.Map<CreateUserResult>(user).Returns(result);
 
         _userRepository.CreateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(user);
@@ -80,7 +80,7 @@ public class CreateUserHandlerTests
     public async Task Handle_InvalidRequest_ThrowsValidationException()
     {
         // Given
-        var command = new ExternalIdentitiesCommand(); // Empty command will fail validation
+        var command = new CreateUserCommand(); // Empty command will fail validation
 
         // When
         var act = () => _handler.Handle(command, CancellationToken.None);
@@ -153,7 +153,7 @@ public class CreateUserHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Then
-        _mapper.Received(1).Map<User>(Arg.Is<ExternalIdentitiesCommand>(c =>
+        _mapper.Received(1).Map<User>(Arg.Is<CreateUserCommand>(c =>
             c.Username == command.Username &&
             c.Email == command.Email &&
             c.Phone == command.Phone &&

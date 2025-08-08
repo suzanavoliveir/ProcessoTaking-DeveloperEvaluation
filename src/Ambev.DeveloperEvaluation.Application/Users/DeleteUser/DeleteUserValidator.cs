@@ -5,7 +5,7 @@ namespace Ambev.DeveloperEvaluation.Application.Users.DeleteUser;
 /// <summary>
 /// Validator for DeleteUserCommand
 /// </summary>
-public class DeleteUserValidator : AbstractValidator<DeleteExternalIdentitiesCommand>
+public class DeleteUserValidator : AbstractValidator<DeleteUserCommand>
 {
     /// <summary>
     /// Initializes validation rules for DeleteUserCommand
