@@ -2,21 +2,15 @@
 using Ambev.DeveloperEvaluation.Application.ExternalIdentities.DeleteExternalIdentities;
 using Ambev.DeveloperEvaluation.Application.ExternalIdentities.GetExternalIdentities;
 using Ambev.DeveloperEvaluation.Application.ExternalIdentities.UpdateExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.Users.DeleteUser;
-using Ambev.DeveloperEvaluation.Application.Users.GetUser;
-using Ambev.DeveloperEvaluation.Common.Security;
-using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Services;
 using Ambev.DeveloperEvaluation.WebApi.Common;
-using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities;
 using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.CreateExternalIdentities;
 using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.GetExternalIdentities;
-using Ambev.DeveloperEvaluation.WebApi.Features.Users.DeleteUser;
 using Ambev.DeveloperEvaluation.WebApi.Features.Users.GetUser;
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using AutoMapper;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using OneOf.Types;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
@@ -29,17 +23,17 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly ILogger<ExternalIdentitiesController> _logger;
-
+        private readonly IExternalIdentitiesService _service;
 
         public ExternalIdentitiesController(IMediator mediator, IMapper mapper,
-                        ILogger<ExternalIdentitiesController> logger)
+                        ILogger<ExternalIdentitiesController> logger,
+                        IExternalIdentitiesService service)
         {
             _mediator = mediator;
             _mapper = mapper;
             _logger = logger;
+            _service = service;
         }
-
-
 
         /// <summary>
         /// Creates a new External Identities
@@ -52,21 +46,21 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateExternalIdentities([FromBody] CreateExternalIdentitiesRequest request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Begin Create ExternalIdentities: {request}", request);
+            _logger.LogInformation("Begin Create ExternalIdentities: {@Request}", request);
 
             var validator = new CreateExternalIdentitiesRequestValidator();
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
             if (!validationResult.IsValid)
             {
-                _logger.LogError("Error Validation Create ExternalIdentities: "+ validationResult.Errors);
+                _logger.LogError("Validation failed: {@Errors}", validationResult.Errors);
                 return BadRequest(validationResult.Errors);
             }
 
-            var command = _mapper.Map<CreateExternalIdentitiesCommand>(request);
-            var response = await _mediator.Send(command, cancellationToken);
+            var entity = _mapper.Map<Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities>(request);
+            var created = await _service.CreateAsync(entity, cancellationToken);
 
-            if (response == null)
+            if (created == null)
             {
                 _logger.LogError("Failed to create ExternalIdentities");
                 return BadRequest(new ApiResponse
@@ -75,111 +69,102 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
                     Message = "Failed to create External Identities"
                 });
             }
-            else
-            {
-                _logger.LogInformation("End Create ExternalIdentities: {response}", response);
 
-            }
+            _logger.LogInformation("End Create ExternalIdentities: {@Created}", created);
 
+            var response = _mapper.Map<CreateExternalIdentitiesResponse>(created);
             return Created(string.Empty, new ApiResponseWithData<CreateExternalIdentitiesResponse>
-                {
-                    Success = true,
-                    Message = "External Identities created successfully",
-                    Data = _mapper.Map<CreateExternalIdentitiesResponse>(response)
-                });
-
+            {
+                Success = true,
+                Message = "External Identities created successfully",
+                Data = response
+            });
         }
 
         /// <summary>
         /// Retrieves a External Identitie by their ID
         /// </summary>
-        /// <param name="id">The unique identifier of the External Identitie</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>The External Identitie details if found</returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(ApiResponseWithData<GetExternalIdentitiesResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponseWithData<CreateExternalIdentitiesResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetExternalIdentitie([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Begin Get ExternalIdentities: Id {id}", id);
+            _logger.LogInformation("Begin Get ExternalIdentities: Id {Id}", id);
 
-            var request = new GetUserRequest { Id = id };
-            var command = _mapper.Map<GetExternalIdentitiesCommand>(request.Id);
-            var response = await _mediator.Send(command, cancellationToken);
+            var entity = await _service.GetByIdAsync(id, cancellationToken);
+            if (entity == null)
+            {
+                _logger.LogWarning("ExternalIdentities not found: Id {Id}", id);
+                return NotFound("ExternalIdentities not found");
+            }
 
-            _logger.LogInformation("End Get ExternalIdentities: {response}", request);
+            var response = _mapper.Map<CreateExternalIdentitiesResponse>(entity);
+            _logger.LogInformation("End Get ExternalIdentities: {@Response}", response);
 
-            return Ok(new ApiResponseWithData<GetExternalIdentitiesResponse>
+            return Ok(new ApiResponseWithData<CreateExternalIdentitiesResponse>
             {
                 Success = true,
                 Message = "External Identitie retrieved successfully",
-                Data = _mapper.Map<GetExternalIdentitiesResponse>(response)
+                Data = response
             });
         }
 
         /// <summary>
         /// Updates a External Identitie by their ID
         /// </summary>
-        /// <param name="id">The unique identifier of the External Identitie to delete</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Success response if the user was deleted</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateExternalIdentitie([FromBody] Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities externalIdentities, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateExternalIdentitie([FromRoute] Guid id, [FromBody] Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities externalIdentities, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Begin Update ExternalIdentities: "+ externalIdentities);
+            _logger.LogInformation("Begin Update ExternalIdentities: {@ExternalIdentities}", externalIdentities);
 
-            var command = new UpdateExternalIdentitiesCommand(externalIdentities);
-            var result = await _mediator.Send(command);
-            if (result == null)
+            var updated = await _service.UpdateAsync(externalIdentities, cancellationToken);
+
+            if (!updated)
             {
-                _logger.LogError("Failed to Update ExternalIdentities");
+                _logger.LogError("Failed to update ExternalIdentities: Id {Id}", id);
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
-                    Message = "Failed to Update External Identities"
+                    Message = "Failed to update External Identities"
                 });
             }
-            else
-            {
-                _logger.LogInformation("End Update ExternalIdentities: {result}", result);
-            }
 
-            if (result.Success)
-                return Ok(result);
-            return BadRequest(result);
+            _logger.LogInformation("End Update ExternalIdentities: Id {Id}", id);
+            return Ok(new ApiResponse
+            {
+                Success = true,
+                Message = "External Identities updated successfully"
+            });
         }
 
 
         /// <summary>
         /// Deletes a External Identitie by their ID
         /// </summary>
-        /// <param name="id">The unique identifier of the External Identitie to delete</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Success response if the user was deleted</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteExternalIdentitie([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Begin Delete ExternalIdentities: Id" + id);
+            _logger.LogInformation("Begin Delete ExternalIdentities: Id {Id}", id);
 
-            var command = _mapper.Map<DeleteExternalIdentitiesCommand>(id);
-            await _mediator.Send(command, cancellationToken);
+            var deleted = await _service.DeleteAsync(id, cancellationToken);
+            if (!deleted)
+            {
+                _logger.LogWarning("Failed to delete ExternalIdentities: Id {Id}", id);
+                return NotFound("ExternalIdentities not found");
+            }
 
-            _logger.LogInformation("End Delete ExternalIdentities: {Id}", id);
-
+            _logger.LogInformation("End Delete ExternalIdentities: Id {Id}", id);
             return Ok(new ApiResponse
             {
                 Success = true,
-                Message = "User deleted successfully"
+                Message = "External Identities deleted successfully"
             });
         }
-
-
     }
 }
+
