@@ -56,7 +56,6 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
                 _logger.LogError("Validation failed: {@Errors}", validationResult.Errors);
                 return BadRequest(validationResult.Errors);
             }
-
             var entity = _mapper.Map<Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities>(request);
             var created = await _service.CreateAsync(entity, cancellationToken);
 
