@@ -4,5 +4,5 @@ public enum ExternalIdentitiesCancel
 {
     Unknown = 0,
     Cancel,
-    NotCancel
+    NotCancelled
 }
