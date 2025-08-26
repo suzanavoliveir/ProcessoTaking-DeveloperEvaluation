@@ -1,17 +1,9 @@
-﻿using Ambev.DeveloperEvaluation.Application.ExternalIdentities.CreateIExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.DeleteExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.GetExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.UpdateExternalIdentities;
-using Ambev.DeveloperEvaluation.Domain.Services;
+﻿using Ambev.DeveloperEvaluation.Domain.Services;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.CreateExternalIdentities;
-using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.GetExternalIdentities;
-using Ambev.DeveloperEvaluation.WebApi.Features.Users.GetUser;
-using Ambev.DeveloperEvaluation.Domain.Entities;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
 {
