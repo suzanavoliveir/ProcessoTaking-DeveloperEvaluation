@@ -40,14 +40,8 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
         {
             _logger.LogInformation("Begin Create ExternalIdentities: {@Request}", request);
 
-            var validator = new CreateExternalIdentitiesRequestValidator();
+            var validator = new CreateExternalIdentitiesRequestValidator(_logger);
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
-
-            if (!validationResult.IsValid)
-            {
-                _logger.LogError("Validation failed: {@Errors}", validationResult.Errors);
-                return BadRequest(validationResult.Errors);
-            }
 
             var entity = _mapper.Map<Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities>(request);
             var created = await _service.CreateAsync(entity, cancellationToken);
