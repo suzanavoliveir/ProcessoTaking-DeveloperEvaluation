@@ -62,6 +62,5 @@ public class CreateExternalIdentitiesRequest
     ///// Cancelled/Not Cancelled
     ///// </summary>
     public ExternalIdentitiesCancel StatusCancel { get; set; }
-
-
+  
 }

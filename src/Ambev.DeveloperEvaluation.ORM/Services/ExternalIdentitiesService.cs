@@ -8,34 +8,34 @@ using Ambev.DeveloperEvaluation.Domain.Messages.UpdateExternalIdentities;
 
 public class ExternalIdentitiesService : IExternalIdentitiesService
 {
-    private readonly IBus _bus;
+    private readonly IMessageBus _messageBus;
 
-    public ExternalIdentitiesService(IBus bus)
+    public ExternalIdentitiesService(IMessageBus bus)
     {
-        _bus = bus;
+        _messageBus = bus;
     }
 
     public async Task<ExternalIdentities> CreateAsync(ExternalIdentities externalIdentities, CancellationToken cancellationToken = default)
     {
-        await _bus.Send(new CreateExternalIdentitiesMessage { ExternalIdentities = externalIdentities });
+        await _messageBus.SendAsync(new CreateExternalIdentitiesMessage { ExternalIdentities = externalIdentities });
         return externalIdentities; // Retorno simplificado, pode ser ajustado conforme resposta do handler
     }
 
     public async Task<ExternalIdentities?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _bus.Send(new GetExternalIdentitiesByIdMessage { Id = id });
+        await _messageBus.SendAsync(new GetExternalIdentitiesByIdMessage { Id = id });
         return null; // Retorno simplificado, pode ser ajustado conforme resposta do handler
     }
 
     public async Task<bool> UpdateAsync(ExternalIdentities externalIdentities, CancellationToken cancellationToken = default)
     {
-        await _bus.Send(new UpdateExternalIdentitiesMessage { ExternalIdentities = externalIdentities });
+        await _messageBus.SendAsync(new UpdateExternalIdentitiesMessage { ExternalIdentities = externalIdentities });
         return true; // Retorno simplificado, pode ser ajustado conforme resposta do handler
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _bus.Send(new DeleteExternalIdentitiesMessage { Id = id });
+        await _messageBus.SendAsync(new DeleteExternalIdentitiesMessage { Id = id });
         return true; // Retorno simplificado, pode ser ajustado conforme resposta do handler
     }
 }

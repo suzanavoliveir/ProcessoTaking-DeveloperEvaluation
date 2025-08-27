@@ -1,17 +1,9 @@
-﻿using Ambev.DeveloperEvaluation.Application.ExternalIdentities.CreateIExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.DeleteExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.GetExternalIdentities;
-using Ambev.DeveloperEvaluation.Application.ExternalIdentities.UpdateExternalIdentities;
-using Ambev.DeveloperEvaluation.Domain.Services;
+﻿using Ambev.DeveloperEvaluation.Domain.Services;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.CreateExternalIdentities;
-using Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities.GetExternalIdentities;
-using Ambev.DeveloperEvaluation.WebApi.Features.Users.GetUser;
-using Ambev.DeveloperEvaluation.Domain.Entities;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
 {
@@ -48,14 +40,9 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.ExternalIdentities
         {
             _logger.LogInformation("Begin Create ExternalIdentities: {@Request}", request);
 
-            var validator = new CreateExternalIdentitiesRequestValidator();
+            var validator = new CreateExternalIdentitiesRequestValidator(_logger);
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
-            if (!validationResult.IsValid)
-            {
-                _logger.LogError("Validation failed: {@Errors}", validationResult.Errors);
-                return BadRequest(validationResult.Errors);
-            }
             var entity = _mapper.Map<Ambev.DeveloperEvaluation.Domain.Entities.ExternalIdentities>(request);
             var created = await _service.CreateAsync(entity, cancellationToken);
 

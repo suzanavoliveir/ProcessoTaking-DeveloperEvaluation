@@ -95,6 +95,16 @@ public class ExternalIdentities : BaseEntity, IExternalIdentities
     /// </summary>
     public ExternalIdentities()
     {
+        SaleNumber = string.Empty;
+        Customer = string.Empty;
+        BranchSale = string.Empty;
+        TotalSaleAmout = 0;
+        Quantities = 0;
+        UnitPrices = 0;
+        Discounts = 0;
+        TotalItem = 0;
+        Products = ExternalIdentitiesProduct.Unknown;
+        StatusCancel = ExternalIdentitiesCancel.Unknown;
         DateSale = DateTime.UtcNow;
     }
 
